@@ -1,0 +1,19 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+COPY package.json ./
+RUN npm install --production=false
+
+COPY tsconfig.json ./
+COPY src ./src
+
+ENV NODE_ENV=production
+ENV GATEWAY_PORT=8080
+ENV METADATA_DATABASE=/data/vault.db
+ENV REPAIR_INTERVAL=10000
+ENV HEARTBEAT_TIMEOUT=15000
+
+EXPOSE 8080
+
+CMD ["npx", "tsx", "src/gateway/index.ts"]

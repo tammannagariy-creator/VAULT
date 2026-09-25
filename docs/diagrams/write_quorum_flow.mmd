@@ -1,0 +1,31 @@
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Client
+    participant GW as Vault Gateway (Coordinator)
+    participant Meta as SQLite Metadata
+    participant N1 as Storage Node 1
+    participant N2 as Storage Node 2
+    participant N3 as Storage Node 3
+
+    Note over Client, GW: 1. Put Object Flow (Write Quorum W=2, N=3)
+    Client->>GW: PUT /objects/:key (Binary Body)
+    GW->>GW: Compute SHA-256 Checksum
+    GW->>Meta: Create Object (PENDING, v1)
+    GW->>GW: PlacementService: Select [N1, N2, N3]
+    
+    par Write Replicas in Parallel
+        GW->>N1: PUT /store/:id (data, checksum)
+        GW->>N2: PUT /store/:id (data, checksum)
+        GW->>N3: PUT /store/:id (data, checksum)
+    end
+    
+    N1-->>GW: 200 OK (Ack 1)
+    N2-->>GW: 200 OK (Ack 2)
+    Note over GW: Quorum Achieved (2/3 Acks >= W=2)
+    
+    GW->>Meta: Commit Object (State: DURABLE)
+    GW-->>Client: 201 Created (object_id, checksum, version)
+    
+    N3-->>GW: 200 OK (Ack 3 - arrives later, recorded)
+```

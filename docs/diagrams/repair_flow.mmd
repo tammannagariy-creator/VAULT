@@ -1,0 +1,30 @@
+```mermaid
+sequenceDiagram
+    autonumber
+    actor Scanner as Node Integrity Scanner
+    participant Node as Node 2 (Local Store)
+    participant GW as Gateway / Cluster
+    participant Rep as Repair Worker
+    participant N1 as Node 1 (Healthy Source)
+    participant N3 as Node 3 (Replacement Target)
+
+    Note over Scanner, Node: Background Integrity Audit Cycle
+    Scanner->>Node: Read object file & verify against .meta sidecar
+    Note over Node: Checksum Mismatch Detected (Bit-rot / Corrupt)
+    Scanner->>GW: POST /internal/corruption (node_id, object_id)
+    
+    GW->>GW: Mark Node 2 replica state = CORRUPT
+    GW->>GW: Refresh Object Replication State -> UNDER_REPLICATED
+    GW->>Rep: Schedule Repair Job (reason: CORRUPT)
+    
+    Note over Rep, N3: Autonomous Repair Execution
+    Rep->>N1: GET /store/:objectId
+    N1-->>Rep: Return raw payload + checksum
+    Rep->>Rep: Verify SHA-256 against metadata canonical checksum
+    Rep->>N3: PUT /store/:objectId (replicated data)
+    N3-->>Rep: 200 OK
+    
+    Rep->>GW: Register new healthy replica on Node 3
+    GW->>GW: Refresh Object Replication State -> DURABLE
+    Note over GW: Durability Invariant Restored
+```

@@ -1,0 +1,35 @@
+{
+  "name": "vault",
+  "version": "1.0.0",
+  "description": "Fault-tolerant distributed object storage system",
+  "scripts": {
+    "gateway": "tsx src/gateway/index.ts",
+    "storage": "tsx src/storage/index.ts",
+    "build": "tsc --outDir dist",
+    "build:gateway": "tsc --outDir dist && node dist/gateway/index.js",
+    "build:storage": "tsc --outDir dist && node dist/storage/index.js",
+    "test": "jest --runInBand",
+    "test:unit": "jest tests/unit --runInBand",
+    "test:integration": "jest tests/integration --runInBand",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.13",
+    "@types/node": "^22.7.5",
+    "@types/supertest": "^6.0.2",
+    "@types/uuid": "^10.0.0",
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5",
+    "tsx": "^4.19.1",
+    "typescript": "^5.6.3"
+  }
+}

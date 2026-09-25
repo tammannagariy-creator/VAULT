@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+.npm/
+
+# Storage Node Data & Databases
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# Build Output
+dist/
+coverage/
+
+# Environment
+.env
+.env.local
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

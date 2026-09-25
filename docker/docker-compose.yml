@@ -1,0 +1,115 @@
+version: '3.8'
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Vault — Docker Compose Configuration
+#
+# Services:
+#   gateway   — API gateway + coordinator + metadata + failure detector + repair
+#   node-1    — storage node (port 8081)
+#   node-2    — storage node (port 8082)
+#   node-3    — storage node (port 8083)
+#
+# Start with: docker compose up
+# Stop with:  docker compose down
+# Logs:       docker compose logs -f
+#
+# Demo: kill a node with: docker compose stop node-2
+# ─────────────────────────────────────────────────────────────────────────────
+
+x-storage-node: &storage-node-base
+  build:
+    context: ..
+    dockerfile: docker/Dockerfile.storage
+  depends_on:
+    - gateway
+  restart: unless-stopped
+  environment:
+    GATEWAY_ADDRESS: gateway
+    GATEWAY_PORT: "8080"
+    HEARTBEAT_INTERVAL: "5000"
+    HEARTBEAT_TIMEOUT: "15000"
+    SCAN_INTERVAL: "60000"
+
+services:
+  gateway:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.gateway
+    ports:
+      - "8080:8080"
+    environment:
+      GATEWAY_PORT: "8080"
+      REPLICATION_FACTOR: "3"
+      WRITE_QUORUM: "2"
+      READ_QUORUM: "2"
+      HEARTBEAT_INTERVAL: "5000"
+      HEARTBEAT_TIMEOUT: "15000"
+      REPAIR_INTERVAL: "10000"
+      SCAN_INTERVAL: "60000"
+      CHECKSUM_ALGORITHM: "sha256"
+      METADATA_DATABASE: "/data/vault.db"
+    volumes:
+      - gateway-data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  node-1:
+    <<: *storage-node-base
+    ports:
+      - "8081:8081"
+    environment:
+      NODE_ID: "node-1"
+      NODE_PORT: "8081"
+      NODE_ADDRESS: "node-1"
+      STORAGE_PATH: "/data/objects"
+      GATEWAY_ADDRESS: gateway
+      GATEWAY_PORT: "8080"
+      HEARTBEAT_INTERVAL: "5000"
+      HEARTBEAT_TIMEOUT: "15000"
+      SCAN_INTERVAL: "60000"
+    volumes:
+      - node1-data:/data/objects
+
+  node-2:
+    <<: *storage-node-base
+    ports:
+      - "8082:8082"
+    environment:
+      NODE_ID: "node-2"
+      NODE_PORT: "8082"
+      NODE_ADDRESS: "node-2"
+      STORAGE_PATH: "/data/objects"
+      GATEWAY_ADDRESS: gateway
+      GATEWAY_PORT: "8080"
+      HEARTBEAT_INTERVAL: "5000"
+      HEARTBEAT_TIMEOUT: "15000"
+      SCAN_INTERVAL: "60000"
+    volumes:
+      - node2-data:/data/objects
+
+  node-3:
+    <<: *storage-node-base
+    ports:
+      - "8083:8083"
+    environment:
+      NODE_ID: "node-3"
+      NODE_PORT: "8083"
+      NODE_ADDRESS: "node-3"
+      STORAGE_PATH: "/data/objects"
+      GATEWAY_ADDRESS: gateway
+      GATEWAY_PORT: "8080"
+      HEARTBEAT_INTERVAL: "5000"
+      HEARTBEAT_TIMEOUT: "15000"
+      SCAN_INTERVAL: "60000"
+    volumes:
+      - node3-data:/data/objects
+
+volumes:
+  gateway-data:
+  node1-data:
+  node2-data:
+  node3-data:
