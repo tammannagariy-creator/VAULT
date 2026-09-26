@@ -61,8 +61,8 @@ export function loadConfig(): VaultConfig {
     nodePort: parseInt(process.env.NODE_PORT ?? '8081', 10),
     nodeAddress: process.env.NODE_ADDRESS ?? 'localhost',
 
-    // Gateway
-    gatewayPort: parseInt(process.env.GATEWAY_PORT ?? '8080', 10),
+    // Gateway (supports dynamic cloud port assignment via PORT)
+    gatewayPort: parseInt(process.env.PORT ?? process.env.GATEWAY_PORT ?? '8080', 10),
     gatewayAddress: process.env.GATEWAY_ADDRESS ?? 'localhost',
 
     // Metadata

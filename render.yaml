@@ -1,0 +1,33 @@
+# Render Blueprint for Vault Distributed Object Storage
+# Deploy with 1 click from your GitHub repository
+services:
+  - type: web
+    name: vault-storage-cluster
+    runtime: docker
+    dockerfilePath: Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: REPLICATION_FACTOR
+        value: "3"
+      - key: WRITE_QUORUM
+        value: "2"
+      - key: READ_QUORUM
+        value: "2"
+      - key: HEARTBEAT_INTERVAL
+        value: "5000"
+      - key: HEARTBEAT_TIMEOUT
+        value: "15000"
+      - key: REPAIR_INTERVAL
+        value: "10000"
+      - key: SCAN_INTERVAL
+        value: "60000"
+      - key: CHECKSUM_ALGORITHM
+        value: sha256
+    disk:
+      name: vault-data
+      mountPath: /data
+      sizeGB: 1
